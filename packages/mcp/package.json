@@ -1,0 +1,49 @@
+{
+  "name": "vue-harvest-mcp",
+  "version": "0.0.1",
+  "description": "MCP server for AI-assisted Vue component extraction and design system analysis",
+  "type": "module",
+  "license": "MIT",
+  "author": "virgilvox",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/virgilvox/vue-harvest"
+  },
+  "keywords": [
+    "vue",
+    "mcp",
+    "model-context-protocol",
+    "component-extraction",
+    "design-system",
+    "ai"
+  ],
+  "bin": {
+    "vue-harvest-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.9.0",
+    "vue-harvest": "workspace:*",
+    "pathe": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.4.0",
+    "typescript": "^5.7.0"
+  }
+}
