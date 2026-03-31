@@ -294,6 +294,14 @@ export interface DesignSystemReport {
   radii: string[]
   /** Shadows */
   shadows: string[]
+  /** CSS custom properties defined in the project (the project's own design tokens) */
+  projectTokens: ProjectToken[]
+  /** Hardcoded values used outside of CSS custom properties */
+  hardcodedValues: DesignToken[]
+  /** Raw project CSS (theme + component classes) for live rendering */
+  themeCSS?: string
+  /** Google Fonts loaded by the project */
+  googleFonts: string[]
   /** Stats */
   stats: {
     totalTokens: number
@@ -303,7 +311,31 @@ export interface DesignSystemReport {
     componentsAnalyzed: number
     /** How many values are hardcoded vs tokenized */
     tokenizationRate: number
+    /** How many CSS custom properties are defined */
+    projectTokenCount: number
+    /** How many var() references are used */
+    varReferenceCount: number
+    /** How many truly hardcoded values exist */
+    hardcodedCount: number
   }
+}
+
+/** A CSS custom property defined in the project — the project's actual design tokens */
+export interface ProjectToken {
+  /** CSS custom property name (e.g., '--accent', '--font-sans') */
+  name: string
+  /** Resolved value (e.g., '#00e7ad', "'Poppins', system-ui, sans-serif") */
+  value: string
+  /** Token type */
+  type: DesignTokenType
+  /** Source file where defined */
+  source: TokenSource
+  /** Number of var() references to this token */
+  usageCount: number
+  /** Whether this is a dark mode override */
+  isDarkMode?: boolean
+  /** Whether this token aliases another via var() */
+  aliasOf?: string
 }
 
 export interface TokenApplicationResult {
@@ -315,4 +347,87 @@ export interface TokenApplicationResult {
     tokenName: string
     tokenType: DesignTokenType
   }>
+}
+
+// --- CSS Component Discovery ---
+
+export type CSSComponentCategory =
+  | 'button'
+  | 'input'
+  | 'select'
+  | 'textarea'
+  | 'checkbox'
+  | 'card'
+  | 'badge'
+  | 'tag'
+  | 'navigation'
+  | 'layout'
+  | 'prose'
+  | 'modal'
+  | 'alert'
+  | 'table'
+  | 'list'
+  | 'media'
+  | 'utility'
+  | 'unknown'
+
+export type CSSNamingConvention =
+  | 'bem'
+  | 'prefix'
+  | 'smacss'
+  | 'tailwind'
+  | 'flat'
+  | 'mixed'
+
+export interface CSSComponentClass {
+  selector: string
+  category: CSSComponentCategory
+  confidence: number
+  variants: CSSComponentVariant[]
+  properties: Record<string, string>
+  source: string
+  usesTokens: boolean
+}
+
+export interface CSSComponentVariant {
+  selector: string
+  kind: 'size' | 'color' | 'state' | 'layout' | 'generic'
+  properties: Record<string, string>
+}
+
+export interface CSSComponentGroup {
+  label: string
+  category: CSSComponentCategory
+  icon: string
+  components: CSSComponentClass[]
+  examples: GeneratedExample[]
+}
+
+export interface GeneratedExample {
+  label: string
+  html: string
+  classes: string[]
+}
+
+export type CSSSystemType =
+  | 'custom-properties'
+  | 'tailwind'
+  | 'component-library'
+  | 'css-modules'
+  | 'scoped-only'
+  | 'mixed'
+
+export interface CSSComponentReport {
+  systemType: CSSSystemType
+  namingConvention: CSSNamingConvention
+  classPrefix: string | null
+  groups: CSSComponentGroup[]
+  totalClasses: number
+  stats: {
+    buttonCount: number
+    formCount: number
+    layoutCount: number
+    contentCount: number
+    otherCount: number
+  }
 }

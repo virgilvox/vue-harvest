@@ -24,6 +24,11 @@ import {
   generateTokenCSS,
   generateDesignSystemHTML,
 } from './analyzers/design-system-analyzer.js'
+import { generateExplorerHTML } from './generators/explorer.js'
+import { analyzeCSSComponents } from './analyzers/css-component-analyzer.js'
+import { generateStorybookApp } from './generators/storybook-app.js'
+
+export { analyzeCSSComponents } from './analyzers/css-component-analyzer.js'
 
 // --- Analysis Report ---
 
@@ -177,7 +182,10 @@ export async function analyze(
 
 // --- Write Output ---
 
-export async function writeOutput(report: AnalysisReport): Promise<void> {
+export async function writeOutput(
+  report: AnalysisReport,
+  designSystem?: DesignSystemReport
+): Promise<void> {
   const outputDir = report.config.outDir
 
   consola.start(`Writing output to ${outputDir}`)
@@ -186,6 +194,47 @@ export async function writeOutput(report: AnalysisReport): Promise<void> {
 
   const catalogHTML = generateCatalogHTML(report.registry, report.components)
   writeFileSync(resolve(outputDir, 'catalog.html'), catalogHTML)
+
+  const pkgPath = resolve(report.config.root, 'package.json')
+  const pkg = existsSync(pkgPath)
+    ? JSON.parse(readFileSync(pkgPath, 'utf-8'))
+    : {}
+
+  const projectName = pkg.name || 'unnamed-project'
+
+  // Run CSS component analysis
+  let cssComponents
+  try {
+    cssComponents = await analyzeCSSComponents(report.config)
+  } catch { /* non-fatal */ }
+
+  // Static explorer HTML
+  const explorerHTML = generateExplorerHTML({
+    registry: report.registry,
+    components: report.components,
+    graph: report.graph,
+    designSystem,
+    projectName,
+    projectVersion: pkg.version,
+  })
+  writeFileSync(resolve(outputDir, 'explorer.html'), explorerHTML)
+
+  // Generate interactive Vite + Vue storybook app
+  try {
+    generateStorybookApp({
+      config: report.config,
+      registry: report.registry,
+      components: report.components,
+      graph: report.graph,
+      designSystem,
+      cssComponents: cssComponents || undefined,
+      projectName,
+      projectVersion: pkg.version,
+    })
+    consola.success('Storybook app generated')
+  } catch (e: any) {
+    consola.warn(`Could not generate storybook app: ${e.message}`)
+  }
 
   // Full analysis dump for MCP
   const mcpDump = {
@@ -210,10 +259,14 @@ export async function writeOutput(report: AnalysisReport): Promise<void> {
 
   consola.success('Output written:')
   consola.info('  registry.json  — Component registry')
+  consola.info('  explorer.html  — Design system & component explorer')
   consola.info('  catalog.html   — Browsable catalog')
   consola.info('  analysis.json  — MCP server data')
   consola.info('  SUMMARY.md     — Human-readable report')
   consola.info('  components/    — Extracted bundles')
+  consola.info('  viewer/        — Interactive Vue storybook app')
+  consola.info('')
+  consola.info(`  Launch viewer: cd ${outputDir}/viewer && npm install && npm run dev`)
 }
 
 // --- Design System Pipeline ---

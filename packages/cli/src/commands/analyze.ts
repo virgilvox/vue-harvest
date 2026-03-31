@@ -28,7 +28,7 @@ export default defineCommand({
     },
   },
   async run({ args }) {
-    const { analyze, writeOutput } = await import('../index.js')
+    const { analyze, analyzeTokens, writeOutput } = await import('../index.js')
 
     const threshold = args.threshold ? parseInt(args.threshold, 10) / 100 : undefined
 
@@ -53,7 +53,17 @@ export default defineCommand({
       return
     }
 
-    await writeOutput(report)
+    // Also run design system analysis for the explorer
+    let designSystem
+    try {
+      designSystem = await analyzeTokens(resolve(args.path), {
+        outDir: args.output,
+      })
+    } catch {
+      // Non-fatal — explorer works without design system data
+    }
+
+    await writeOutput(report, designSystem)
 
     // Summary table
     consola.box(

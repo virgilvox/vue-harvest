@@ -1,6 +1,6 @@
 {
   "name": "vue-harvest",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Extract reusable component libraries and design tokens from any Vue application",
   "type": "module",
   "license": "MIT",
