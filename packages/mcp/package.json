@@ -1,7 +1,8 @@
 {
   "name": "vue-harvest-mcp",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "MCP server for AI-assisted Vue component extraction and design system analysis",
+  "mcpName": "io.github.virgilvox/vue-harvest",
   "type": "module",
   "license": "MIT",
   "author": "virgilvox",

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.virgilvox/vue-harvest",
+  "description": "Extract reusable component libraries and design tokens from Vue applications",
+  "repository": {
+    "url": "https://github.com/virgilvox/vue-harvest",
+    "source": "github"
+  },
+  "version": "0.0.2",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "vue-harvest-mcp",
+      "version": "0.0.2",
+      "transport": {
+        "type": "stdio"
+      }
+    }
+  ]
+}

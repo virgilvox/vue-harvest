@@ -3,7 +3,7 @@ import { defineCommand, runMain } from 'citty'
 const main = defineCommand({
   meta: {
     name: 'vue-harvest',
-    version: '0.0.1',
+    version: '0.0.2',
     description:
       'Extract reusable component libraries and design tokens from Vue applications',
   },
