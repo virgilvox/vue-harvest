@@ -6,12 +6,12 @@
     "url": "https://github.com/virgilvox/vue-harvest",
     "source": "github"
   },
-  "version": "0.0.2",
+  "version": "0.0.3",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "vue-harvest-mcp",
-      "version": "0.0.2",
+      "version": "0.0.3",
       "transport": {
         "type": "stdio"
       }
