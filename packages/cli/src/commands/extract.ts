@@ -44,11 +44,13 @@ export default defineCommand({
       process.exit(1)
     }
 
+    const config = resolveConfig(root)
+    const thresholdPct = Math.round(config.extractionThreshold * 100)
     const pct = Math.round(comp.extractionConfidence * 100)
 
-    if (pct < 70 && !args.force) {
+    if (pct < thresholdPct && !args.force) {
       consola.warn(
-        `${args.name} confidence is ${pct}% (below 70% threshold). Use --force to extract anyway.`
+        `${args.name} confidence is ${pct}% (below ${thresholdPct}% threshold). Use --force to extract anyway.`
       )
       process.exit(1)
     }
@@ -62,15 +64,16 @@ export default defineCommand({
       ...(pkg.devDependencies || {}),
     }
 
-    const config = resolveConfig(root, {
-      extractionThreshold: args.force ? 0 : 0.7,
-    })
+    // If forcing, override threshold to 0 so extractor does not warn
+    const extractConfig = args.force
+      ? resolveConfig(root, { extractionThreshold: 0 })
+      : config
 
     const result = extractComponent(
       args.name,
       report.components,
       report.graph,
-      config,
+      extractConfig,
       projectDeps
     )
 

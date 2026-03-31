@@ -1,5 +1,5 @@
 import { resolve } from 'pathe'
-import { existsSync, readFileSync, writeFileSync } from 'fs'
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
 import glob from 'fast-glob'
 import consola from 'consola'
 import type {
@@ -91,6 +91,12 @@ export async function analyze(
         config.root,
         config.aliases
       )
+      if (components.has(analyzed.name)) {
+        const existing = components.get(analyzed.name)!
+        consola.warn(
+          `Duplicate component name "${analyzed.name}": ${file} conflicts with ${existing.filePath}. Using ${file}.`
+        )
+      }
       components.set(analyzed.name, analyzed)
     } catch (err: any) {
       consola.warn(`Failed to analyze ${file}: ${err.message}`)
@@ -271,7 +277,6 @@ export async function writeDesignSystemOutput(
   report: DesignSystemReport,
   outputDir: string
 ): Promise<void> {
-  const { mkdirSync } = await import('fs')
   mkdirSync(outputDir, { recursive: true })
 
   // CSS tokens file

@@ -1,8 +1,6 @@
-import { parse } from '@vue/compiler-sfc'
 import { readFileSync, existsSync } from 'fs'
 import glob from 'fast-glob'
 import { resolve } from 'pathe'
-import valueParser from 'postcss-value-parser'
 import type {
   DesignToken,
   DesignTokenType,
@@ -16,24 +14,10 @@ import type {
 const HEX_PATTERN = /#(?:[0-9a-fA-F]{3,4}){1,2}\b/g
 const RGB_PATTERN = /rgba?\(\s*[\d.]+%?\s*[,\s]\s*[\d.]+%?\s*[,\s]\s*[\d.]+%?\s*(?:[,/]\s*[\d.]+%?\s*)?\)/g
 const HSL_PATTERN = /hsla?\(\s*[\d.]+\s*[,\s]\s*[\d.]+%\s*[,\s]\s*[\d.]+%\s*(?:[,/]\s*[\d.]+%?\s*)?\)/g
-const NAMED_COLORS = new Set([
-  'black', 'white', 'red', 'blue', 'green', 'yellow', 'orange', 'purple',
-  'pink', 'gray', 'grey', 'brown', 'cyan', 'magenta', 'lime', 'navy',
-  'teal', 'maroon', 'olive', 'aqua', 'fuchsia', 'silver', 'transparent',
-  'inherit', 'currentColor', 'currentcolor',
-])
-
 // --- Value Classification ---
 
 const FONT_SIZE_PATTERN = /^\d+(\.\d+)?(px|rem|em|pt|vw|vh|%)$/
 const SPACING_PATTERN = /^\d+(\.\d+)?(px|rem|em|%)$/
-const FONT_WEIGHT_PATTERN = /^(normal|bold|bolder|lighter|\d{3})$/
-const BORDER_RADIUS_PATTERN = /^\d+(\.\d+)?(px|rem|em|%)$/
-const Z_INDEX_PATTERN = /^\d+$/
-const OPACITY_PATTERN = /^0?\.\d+$|^[01]$/
-const SHADOW_PATTERN = /^\d+px\s/
-const LINE_HEIGHT_PATTERN = /^(\d+(\.\d+)?)(px|rem|em|%)?$/
-const LETTER_SPACING_PATTERN = /^-?\d+(\.\d+)?(px|rem|em)$/
 
 // CSS properties that map to token types
 const PROPERTY_TOKEN_MAP: Record<string, DesignTokenType> = {
@@ -529,8 +513,8 @@ export function generateDesignSystemHTML(report: DesignSystemReport): string {
   <div class="palette">
     ${report.palette.map(c => `
       <div class="swatch">
-        <div class="swatch-color" style="background: ${c.hex}"></div>
-        <div class="swatch-label">${c.hex}</div>
+        <div class="swatch-color" style="background: ${escHtml(c.hex)}"></div>
+        <div class="swatch-label">${escHtml(c.hex)}</div>
         <div class="swatch-count">${c.usageCount}x</div>
       </div>
     `).join('')}
@@ -539,23 +523,23 @@ export function generateDesignSystemHTML(report: DesignSystemReport): string {
   <h2>Typography</h2>
   <h3 style="font-size:0.9rem;color:var(--muted);margin:0.5rem 0">Font Families</h3>
   <div class="scale">
-    ${report.typography.families.map(f => `<div class="scale-item">${f}</div>`).join('')}
+    ${report.typography.families.map(f => `<div class="scale-item">${escHtml(f)}</div>`).join('')}
   </div>
   <h3 style="font-size:0.9rem;color:var(--muted);margin:0.5rem 0">Font Sizes</h3>
   <div class="scale">
-    ${report.typography.sizes.map(s => `<div class="scale-item" style="font-size:${s}">${s}</div>`).join('')}
+    ${report.typography.sizes.map(s => `<div class="scale-item" style="font-size:${escAttr(s)}">${escHtml(s)}</div>`).join('')}
   </div>
   <h3 style="font-size:0.9rem;color:var(--muted);margin:0.5rem 0">Font Weights</h3>
   <div class="scale">
-    ${report.typography.weights.map(w => `<div class="scale-item" style="font-weight:${w}">${w}</div>`).join('')}
+    ${report.typography.weights.map(w => `<div class="scale-item" style="font-weight:${escAttr(w)}">${escHtml(w)}</div>`).join('')}
   </div>
 
   <h2>Spacing Scale</h2>
   <div class="scale">
     ${report.spacing.map(s => `
       <div class="scale-item">
-        <div style="background:var(--accent);height:8px;width:${s};max-width:200px;border-radius:2px;margin-bottom:4px"></div>
-        ${s}
+        <div style="background:var(--accent);height:8px;width:${escAttr(s)};max-width:200px;border-radius:2px;margin-bottom:4px"></div>
+        ${escHtml(s)}
       </div>
     `).join('')}
   </div>
@@ -564,8 +548,8 @@ export function generateDesignSystemHTML(report: DesignSystemReport): string {
   <div class="scale">
     ${report.radii.map(r => `
       <div class="scale-item">
-        <div style="width:40px;height:40px;border:2px solid var(--accent);border-radius:${r};margin-bottom:4px"></div>
-        ${r}
+        <div style="width:40px;height:40px;border:2px solid var(--accent);border-radius:${escAttr(r)};margin-bottom:4px"></div>
+        ${escHtml(r)}
       </div>
     `).join('')}
   </div>
@@ -575,11 +559,23 @@ export function generateDesignSystemHTML(report: DesignSystemReport): string {
   <div class="scale">
     ${report.shadows.map(s => `
       <div class="scale-item">
-        <div style="width:60px;height:40px;background:var(--surface);box-shadow:${s};border-radius:4px;margin-bottom:4px"></div>
-        <small>${s}</small>
+        <div style="width:60px;height:40px;background:var(--surface);box-shadow:${escAttr(s)};border-radius:4px;margin-bottom:4px"></div>
+        <small>${escHtml(s)}</small>
       </div>
     `).join('')}
   </div>` : ''}
 </body>
 </html>`
+}
+
+function escHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+}
+
+function escAttr(s: string): string {
+  return s.replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 }

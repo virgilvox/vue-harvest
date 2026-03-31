@@ -103,10 +103,8 @@ export function extractProps(
   }
 
   if (variant.startsWith('options') || variant.startsWith('composition')) {
-    const propsMatch = scriptContent.match(
-      /props\s*:\s*\{([\s\S]*?)\}(?=\s*[,}])/
-    )
-    if (propsMatch) return parseObjectProps(propsMatch[1])
+    const propsBody = matchBalancedBraces(scriptContent, 'props')
+    if (propsBody) return parseObjectProps(propsBody)
   }
 
   return []
@@ -625,8 +623,9 @@ export function classifyReusability(
   const blockers = component.couplingIssues.filter(
     (i) => i.severity === 'blocker'
   )
+  // Exclude direct-store-access from warning count since stores are penalized separately
   const warnings = component.couplingIssues.filter(
-    (i) => i.severity === 'warning'
+    (i) => i.severity === 'warning' && i.type !== 'direct-store-access'
   )
 
   // Penalties

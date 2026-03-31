@@ -60,10 +60,11 @@ export function resolveConfig(
     include: overrides.include ?? fileConfig.include ?? DEFAULT_CONFIG.include,
     exclude: overrides.exclude ?? fileConfig.exclude ?? DEFAULT_CONFIG.exclude,
     aliases,
-    extractionThreshold:
+    extractionThreshold: normalizeThreshold(
       overrides.extractionThreshold ??
       fileConfig.extractionThreshold ??
-      DEFAULT_CONFIG.extractionThreshold,
+      DEFAULT_CONFIG.extractionThreshold
+    ),
     outDir,
     registry: overrides.registry ?? fileConfig.registry ?? DEFAULT_CONFIG.registry,
   }
@@ -101,6 +102,12 @@ export function resolveProjectMeta(root: string): ProjectMeta {
     existsSync(join(root, 'tailwind.config.cjs'))
 
   return meta
+}
+
+/** Normalize threshold: values > 1 are treated as percentages (e.g. 70 becomes 0.7) */
+function normalizeThreshold(value: number): number {
+  if (value > 1) return value / 100
+  return value
 }
 
 function detectAliases(root: string): Record<string, string> {

@@ -224,13 +224,18 @@ export function getDependencyClosure(
   graph: ComponentGraph
 ): string[] {
   const visited = new Set<string>()
-  const stack = [componentName]
+
+  // Seed with direct dependencies of the root component
+  const directDeps = graph.edges
+    .filter((e) => e.source === componentName)
+    .map((e) => e.target)
+
+  const stack = [...directDeps]
 
   while (stack.length > 0) {
     const current = stack.pop()!
-    if (visited.has(current) || current === componentName) {
-      if (current !== componentName) continue
-    }
+    if (visited.has(current)) continue
+    visited.add(current)
 
     const deps = graph.edges
       .filter((e) => e.source === current)
@@ -238,7 +243,6 @@ export function getDependencyClosure(
 
     for (const dep of deps) {
       if (!visited.has(dep)) {
-        visited.add(dep)
         stack.push(dep)
       }
     }

@@ -1,6 +1,4 @@
 import { defineCommand, runMain } from 'citty'
-import { resolve } from 'pathe'
-import consola from 'consola'
 
 const main = defineCommand({
   meta: {
