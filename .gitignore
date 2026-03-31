@@ -6,3 +6,5 @@ dist
 coverage
 .turbo
 files (5)/
+.mcpregistry_*
+mcp-publisher
